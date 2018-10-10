@@ -150,11 +150,10 @@
 
 #ifdef __CC_PLATFORM_IOS
 /** CCAccelerometerDelegate delegate */
-@class UIAcceleration;
-@class UIAccelerometer;
+@class CMAccelerometerData;
 @protocol CCAccelerometerDelegate <NSObject>
 
 @optional
-- (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration;
+- (void)accelerometer:(CMAccelerometerData *)acceleration;
 @end
 #endif // __CC_PLATFORM_IOS

@@ -111,17 +111,20 @@
 	if( enabled != _accelerometerEnabled ) {
 		_accelerometerEnabled = enabled;
 		if( _isRunning ) {
-			if( enabled )
+			[NSException raise:@"Accelerometer not ported to CMotion yet." format:@"please do it now"];
+
+			/*|if( enabled )
 				[[UIAccelerometer sharedAccelerometer] setDelegate:(id<UIAccelerometerDelegate>)self];
 			else
-				[[UIAccelerometer sharedAccelerometer] setDelegate:nil];
+				[[UIAccelerometer sharedAccelerometer] setDelegate:nil];|*/
 		}
 	}
 }
 
 -(void) setAccelerometerInterval:(float)interval
 {
-	[[UIAccelerometer sharedAccelerometer] setUpdateInterval:interval];
+	[NSException raise:@"Accelerometer not ported to CMotion yet." format:@"please do it now"];
+	//|[[UIAccelerometer sharedAccelerometer] setUpdateInterval:interval];
 }
 
 -(BOOL) isTouchEnabled
@@ -377,8 +380,10 @@
 -(void) onEnterTransitionDidFinish
 {
 #ifdef __CC_PLATFORM_IOS
-	if( _accelerometerEnabled )
-		[[UIAccelerometer sharedAccelerometer] setDelegate:(id<UIAccelerometerDelegate>)self];
+	if( _accelerometerEnabled ){
+		[NSException raise:@"Accelerometer not ported to CMotion yet." format:@"please do it now"];
+		//|[[UIAccelerometer sharedAccelerometer] setDelegate:(id<UIAccelerometerDelegate>)self];
+	}
 #endif
 
 	[super onEnterTransitionDidFinish];
@@ -393,8 +398,10 @@
 	if( _touchEnabled )
 		[[director touchDispatcher] removeDelegate:self];
 
-	if( _accelerometerEnabled )
-		[[UIAccelerometer sharedAccelerometer] setDelegate:nil];
+	if( _accelerometerEnabled ){
+		[NSException raise:@"Accelerometer not ported to CMotion yet." format:@"please do it now"];
+		//|[[UIAccelerometer sharedAccelerometer] setDelegate:nil];
+	}
 
 #elif defined(__CC_PLATFORM_MAC)
 	CCEventDispatcher *eventDispatcher = [director eventDispatcher];
@@ -714,7 +721,7 @@
 
 	// Compressed Interpolation mode
 	if( _compressedInterpolation ) {
-		float h2 = 1 / ( fabsf(u.x) + fabsf(u.y) );
+		float h2 = 1 / ( fabs(u.x) + fabs(u.y) );
 		u = ccpMult(u, h2 * (float)c);
 	}
 

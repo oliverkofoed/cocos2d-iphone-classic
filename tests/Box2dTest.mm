@@ -246,7 +246,7 @@ enum {
 	}
 }
 
-- (void)accelerometer:(UIAccelerometer*)accelerometer didAccelerate:(UIAcceleration*)acceleration
+- (void)accelerometer:(CMAccelerometerData *)acceleration;
 {
 	static float prevX=0, prevY=0;
 

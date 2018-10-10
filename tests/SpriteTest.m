@@ -5067,7 +5067,7 @@ Class restartAction()
 
 	director_ = (CCDirectorIOS*) [CCDirector sharedDirector];
 
-	director_.wantsFullScreenLayout = YES;
+	//| director_.wantsFullScreenLayout = YES;
 	// Display Milliseconds Per Frame
 	[director_ setDisplayStats:YES];
 

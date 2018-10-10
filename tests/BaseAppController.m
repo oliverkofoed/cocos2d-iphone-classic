@@ -49,7 +49,7 @@
 	
 	[director_ setView:__glView];
 	[director_ setDelegate:self];
-	director_.wantsFullScreenLayout = YES;
+	//| director_.wantsFullScreenLayout = YES;
 
 	// Retina Display ?
 	[director_ enableRetinaDisplay:useRetinaDisplay_];

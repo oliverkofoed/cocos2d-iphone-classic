@@ -225,7 +225,7 @@ enum {
 }
 
 
-- (void) accelerometer:(UIAccelerometer*)accelerometer didAccelerate:(UIAcceleration*)acceleration
+- (void)accelerometer:(CMAccelerometerData *)acceleration;
 {
 	// Only run for valid values
 	if (acceleration.y!=0 && acceleration.x!=0)

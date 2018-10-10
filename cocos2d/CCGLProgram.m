@@ -50,12 +50,12 @@ typedef struct _hashUniformEntry
 
 #pragma mark Function Pointer Definitions
 typedef void (*GLInfoFunction)(GLuint program,
-                               GLenum pname,
-                               GLint* params);
+							   GLenum pname,
+							   GLint* params);
 typedef void (*GLLogFunction) (GLuint program,
-                               GLsizei bufsize,
-                               GLsizei* length,
-                               GLchar* infolog);
+							   GLsizei bufsize,
+							   GLsizei* length,
+							   GLchar* infolog);
 #pragma mark -
 #pragma mark Private Extension Method Declaration
 
@@ -83,9 +83,9 @@ typedef void (*GLLogFunction) (GLuint program,
 
 - (id)initWithVertexShaderByteArray:(const GLchar *)vShaderByteArray fragmentShaderByteArray:(const GLchar *)fShaderByteArray
 {
-    if ((self = [super init]) )
-    {
-        _program = glCreateProgram();
+	if ((self = [super init]) )
+	{
+		_program = glCreateProgram();
 		
 		_vertShader = _fragShader = 0;
 		
@@ -97,12 +97,12 @@ typedef void (*GLLogFunction) (GLuint program,
 				CCLOG(@"cocos2d: ERROR: Failed to compile vertex shader");
 		}
 		
-        // Create and compile fragment shader
+		// Create and compile fragment shader
 		if( fShaderByteArray ) {
 			if (![self compileShader:&_fragShader
 								type:GL_FRAGMENT_SHADER
 						   byteArray:fShaderByteArray] )
-
+				
 				CCLOG(@"cocos2d: ERROR: Failed to compile fragment shader");
 		}
 		
@@ -113,9 +113,9 @@ typedef void (*GLLogFunction) (GLuint program,
 			glAttachShader(_program, _fragShader);
 		
 		_hashForUniforms = NULL;
-    }
+	}
 	
-    return self;
+	return self;
 }
 
 - (id)initWithVertexShaderFilename:(NSString *)vShaderFilename fragmentShaderFilename:(NSString *)fShaderFilename
@@ -131,7 +131,7 @@ typedef void (*GLLogFunction) (GLuint program,
 	}
 	const GLchar * vertexSource = (GLchar*) [[NSString stringWithContentsOfFile:v encoding:NSUTF8StringEncoding error:nil] UTF8String];
 	const GLchar * fragmentSource = (GLchar*) [[NSString stringWithContentsOfFile:f encoding:NSUTF8StringEncoding error:nil] UTF8String];
-
+	
 	return [self initWithVertexShaderByteArray:vertexSource fragmentShaderByteArray:fragmentSource];
 }
 
@@ -140,34 +140,49 @@ typedef void (*GLLogFunction) (GLuint program,
 	return [NSString stringWithFormat:@"<%@ = %p | Program = %i, VertexShader = %i, FragmentShader = %i>", [self class], self, _program, _vertShader, _fragShader];
 }
 
+#define EXTENSION_STRING "#extension GL_OES_standard_derivatives : enable"
+static NSString * g_extensionStr = @EXTENSION_STRING;
 
 - (BOOL)compileShader:(GLuint *)shader type:(GLenum)type byteArray:(const GLchar *)source
 {
-    GLint status;
-
-    if (!source)
-        return NO;
-		
-		const GLchar *sources[] = {
-#ifdef __CC_PLATFORM_IOS
-			(type == GL_VERTEX_SHADER ? "precision highp float;\n" : "precision mediump float;\n"),
-#endif
-			"uniform mat4 CC_PMatrix;\n"
-			"uniform mat4 CC_MVMatrix;\n"
-			"uniform mat4 CC_MVPMatrix;\n"
-			"uniform vec4 CC_Time;\n"
-			"uniform vec4 CC_SinTime;\n"
-			"uniform vec4 CC_CosTime;\n"
-			"uniform vec4 CC_Random01;\n"
-			"//CC INCLUDES END\n\n",
-			source,
-		};
-		
-    *shader = glCreateShader(type);
-    glShaderSource(*shader, sizeof(sources)/sizeof(*sources), sources, NULL);
-    glCompileShader(*shader);
+	GLint status;
 	
-    glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
+	if (!source)
+		return NO;
+	
+	// BEGIN workaround for Xcode 7 bug
+	BOOL hasExtension = NO;
+	NSString *sourceStr = [NSString stringWithUTF8String:source];
+	if([sourceStr containsString:g_extensionStr]) {
+		hasExtension = YES;
+		NSArray *strs = [sourceStr componentsSeparatedByString:g_extensionStr];
+		assert(strs.count == 2);
+		sourceStr = [strs componentsJoinedByString:@"\n"];
+		source = (GLchar *)[sourceStr UTF8String];
+	}
+	
+	const GLchar *sources[] = {
+		(hasExtension ? EXTENSION_STRING "\n" : ""),
+#ifdef __CC_PLATFORM_IOS
+		(type == GL_VERTEX_SHADER ? "precision highp float;\n" : "precision mediump float;\n"),
+#endif
+		"uniform mat4 CC_PMatrix;\n"
+		"uniform mat4 CC_MVMatrix;\n"
+		"uniform mat4 CC_MVPMatrix;\n"
+		"uniform vec4 CC_Time;\n"
+		"uniform vec4 CC_SinTime;\n"
+		"uniform vec4 CC_CosTime;\n"
+		"uniform vec4 CC_Random01;\n"
+		"//CC INCLUDES END\n\n",
+		source,
+	};
+	// END workaround for Xcode 7 bug
+	
+	*shader = glCreateShader(type);
+	glShaderSource(*shader, sizeof(sources)/sizeof(*sources), sources, NULL);
+	glCompileShader(*shader);
+	
+	glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
 	
 	if( ! status ) {
 		GLsizei length;
@@ -184,7 +199,7 @@ typedef void (*GLLogFunction) (GLuint program,
 		
 		abort();
 	}
-    return ( status == GL_TRUE );
+	return ( status == GL_TRUE );
 }
 
 #pragma mark -
@@ -205,21 +220,21 @@ typedef void (*GLLogFunction) (GLuint program,
 	_uniforms[kCCUniformTime] = glGetUniformLocation(_program, kCCUniformTime_s);
 	_uniforms[kCCUniformSinTime] = glGetUniformLocation(_program, kCCUniformSinTime_s);
 	_uniforms[kCCUniformCosTime] = glGetUniformLocation(_program, kCCUniformCosTime_s);
-
+	
 	_uniforms[kCCUniformRandom01] = glGetUniformLocation(_program, kCCUniformRandom01_s);
-
+	
 	_uniforms[kCCUniformSampler] = glGetUniformLocation(_program, kCCUniformSampler_s);
-
+	
 	_flags.usesMVP = _uniforms[kCCUniformMVPMatrix] != -1;
 	_flags.usesMV = (_uniforms[kCCUniformMVMatrix] != -1 && _uniforms[kCCUniformPMatrix] != -1 );
 	_flags.usesTime = (
-		_uniforms[kCCUniformTime] != -1 ||
-		_uniforms[kCCUniformSinTime] != -1 ||
-		_uniforms[kCCUniformCosTime] != -1
-	);
+					   _uniforms[kCCUniformTime] != -1 ||
+					   _uniforms[kCCUniformSinTime] != -1 ||
+					   _uniforms[kCCUniformCosTime] != -1
+					   );
 	_flags.usesRandom = _uniforms[kCCUniformRandom01] != -1;
-
-
+	
+	
 	[self use];
 	
 	// Since sample most probably won't change, set it to 0 now.
@@ -230,31 +245,31 @@ typedef void (*GLLogFunction) (GLuint program,
 
 -(BOOL) link
 {
-    NSAssert(_program != 0, @"Cannot link invalid program");
+	NSAssert(_program != 0, @"Cannot link invalid program");
 	
-    GLint status = GL_TRUE;
-    glLinkProgram(_program);
+	GLint status = GL_TRUE;
+	glLinkProgram(_program);
 	
-    if (_vertShader)
-        glDeleteShader(_vertShader);
-
-    if (_fragShader)
-        glDeleteShader(_fragShader);
-
-    _vertShader = _fragShader = 0;
+	if (_vertShader)
+		glDeleteShader(_vertShader);
+	
+	if (_fragShader)
+		glDeleteShader(_fragShader);
+	
+	_vertShader = _fragShader = 0;
 	
 #if DEBUG
-    glGetProgramiv(_program, GL_LINK_STATUS, &status);
-    NSString* log = self.programLog;
+	glGetProgramiv(_program, GL_LINK_STATUS, &status);
+	NSString* log = self.programLog;
 	
-    if (status == GL_FALSE) {
-        NSLog(@"cocos2d: ERROR: Failed to link program: %i - %@", _program, log);
-        ccGLDeleteProgram( _program );
-        _program = 0;
-    }
+	if (status == GL_FALSE) {
+		NSLog(@"cocos2d: ERROR: Failed to link program: %i - %@", _program, log);
+		ccGLDeleteProgram( _program );
+		_program = 0;
+	}
 #endif
 	
-    return (status == GL_TRUE);
+	return (status == GL_TRUE);
 }
 
 -(void) use
@@ -269,17 +284,17 @@ typedef void (*GLLogFunction) (GLuint program,
 						 logFunc:(GLLogFunction)logFunc
 {
 	GLint logLength = 0, charsWritten = 0;
-
+	
 	infoFunc(object, GL_INFO_LOG_LENGTH, &logLength);
 	if (logLength < 1)
 		return nil;
-
+	
 	char *logBytes = malloc(logLength);
 	logFunc(object, logLength, &charsWritten, logBytes);
 	NSString *log = [[[NSString alloc] initWithBytes:logBytes
 											  length:logLength
 											encoding:NSUTF8StringEncoding]
-					  autorelease];
+					 autorelease];
 	free(logBytes);
 	return log;
 }
@@ -311,18 +326,18 @@ typedef void (*GLLogFunction) (GLuint program,
 {
 	if(location < 0)
 		return FALSE;
-
+	
 	BOOL updated = YES;
 	tHashUniformEntry *element = NULL;
 	HASH_FIND_INT(_hashForUniforms, &location, element);
-
+	
 	if( ! element ) {
-
+		
 		element = malloc( sizeof(*element) );
-
+		
 		// key
 		element->location = location;
-
+		
 		// value
 		element->value = malloc( bytes );
 		memcpy(element->value, data, bytes );
@@ -336,16 +351,16 @@ typedef void (*GLLogFunction) (GLuint program,
 		else
 			memcpy( element->value, data, bytes );
 	}
-
+	
 	return updated;
 }
 
 - (GLint)uniformLocationForName:(NSString*)name
 {
-    NSAssert(name != nil, @"Invalid uniform name" );
-    NSAssert(_program != 0, @"Invalid operation. Cannot get uniform location when program is not initialized");
-    
-    return glGetUniformLocation(_program, [name UTF8String]);
+	NSAssert(name != nil, @"Invalid uniform name" );
+	NSAssert(_program != 0, @"Invalid operation. Cannot get uniform location when program is not initialized");
+	
+	return glGetUniformLocation(_program, [name UTF8String]);
 }
 
 -(void) setUniformLocation:(GLint)location withI1:(GLint)i1
@@ -428,7 +443,7 @@ typedef void (*GLLogFunction) (GLuint program,
 {
 	kmMat4 matrixP;
 	kmMat4 matrixMV;
-
+	
 	kmGLGetMatrix(KM_GL_PROJECTION, &matrixP );
 	kmGLGetMatrix(KM_GL_MODELVIEW, &matrixMV );
 	
@@ -437,12 +452,12 @@ typedef void (*GLLogFunction) (GLuint program,
 		kmMat4Multiply(&matrixMVP, &matrixP, &matrixMV);
 		[self setUniformLocation:_uniforms[kCCUniformMVPMatrix] withMatrix4fv:matrixMVP.mat count:1];
 	}
-
+	
 	if( _flags.usesMV) {
 		[self setUniformLocation:_uniforms[  kCCUniformPMatrix] withMatrix4fv:  matrixP.mat count:1];
 		[self setUniformLocation:_uniforms[ kCCUniformMVMatrix] withMatrix4fv: matrixMV.mat count:1];
 	}
-
+	
 	if(_flags.usesTime){
 		CCDirector *director = [CCDirector sharedDirector];
 		// This doesn't give the most accurate global time value.
@@ -470,23 +485,23 @@ typedef void (*GLLogFunction) (GLuint program,
 - (void)dealloc
 {
 	CCLOGINFO( @"cocos2d: deallocing %@", self);
-
+	
 	// there is no need to delete the shaders. They should have been already deleted.
 	NSAssert( _vertShader == 0, @"Vertex Shaders should have been already deleted");
 	NSAssert( _fragShader == 0, @"Fragment Shaders should have been already deleted");
-
+	
 	if (_program)
 		ccGLDeleteProgram(_program);
-
+	
 	tHashUniformEntry *current_element, *tmp;
-
+	
 	// Purge uniform hash
 	HASH_ITER(hh, _hashForUniforms, current_element, tmp) {
 		HASH_DEL(_hashForUniforms, current_element);
 		free(current_element->value);
 		free(current_element);
 	}
-
+	
 	[super dealloc];
 }
 @end
